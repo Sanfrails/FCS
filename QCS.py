@@ -23,7 +23,7 @@ def tag(x):
     subprocess.run(['tag', '-a', 'Red', str(x)])
 
 # Setup (target and toTag)
-target = Path('/Users/K/Desktop/Example')
+target = Path(input("\nTarget : "))
 paths_contents = listdir(target)
 toTag = []
 
@@ -43,7 +43,7 @@ for x in paths_contents:
     if x.is_dir(): 
         subfolder_contents = listdir(x)
     subfolder_contents.discard(x / 'CaptureOne')
-    subfolder_contents.discard(x / f'{x}_Marking.txt') # Change txt to CR3
+    subfolder_contents.discard(x / f'{x.name}_Marking.CR3') # Change txt to CR3
     file_stems = [y.stem for y in subfolder_contents]
     file_suffixes = {y.suffix for y in subfolder_contents}
 
@@ -87,7 +87,7 @@ for x in paths_contents:
         continue    
 
         # Suffix Type check
-    if not (file_suffixes == {'.txt'}):
+    if not (file_suffixes == {'.CR3'}):
          toTag.append(x)
          moveOn = True
     if moveOn:
