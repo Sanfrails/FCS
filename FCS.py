@@ -7,22 +7,22 @@ def listdir(x):
     d = x / '.DS_Store'
     a.discard(d)
     return a
-def dir_setup(x):
-    subfolder_contents = listdir(x)
-    subfolder_contents.discard(x / 'CaptureOne')
-    subfolder_contents.discard(x / f'{x.name}_Marking.txt') # txt ↔ CR3
+def dir_setup(outer):
+    subfolder_contents = listdir(outer)
+    subfolder_contents.discard(outer / 'CaptureOne')
+    subfolder_contents.discard(outer / f'{outer.name}_Marking.txt') # txt ↔ CR3
     file_stems = [y.stem for y in subfolder_contents]
     file_suffixes = {y.suffix for y in subfolder_contents}
     return subfolder_contents, file_stems, file_suffixes
 # Error Marking
-def tag(x):
-    subprocess.run(['tag', '-a', 'Red', str(x)])
-def error(x,y):
-    toTag.append(x)
-    issues.append(f"{x.name.strip()} triggered {y} Error")
+def tag(outer, color):
+    subprocess.run(['tag', '-a', color, str(outer)])
+def error(outer,error_type):
+    toTag.append(outer)
+    issues.append(f"{outer.name.strip()} triggered {error_type} Error")
 # Checks
-def subfolder_form(x):
-    subfolder_name = [y for y in x.name]
+def subfolder_form(outer):
+    subfolder_name = [y for y in outer.name]
     if not (len(subfolder_name) == 11):
          return True
     if not (((subfolder_name[2] == '_') and (subfolder_name[5] == '_'))):
@@ -32,130 +32,139 @@ def subfolder_form(x):
         if not y.isdigit():
             return True
     return False
-def content_exists(x):
-        return (len(x) == 0)          
-def content_type(x):
-         for y in x:
+def content_exists(contents):
+        return (len(contents) == 0)          
+def content_type(contents):
+         for y in contents:
             if y.is_dir():
                 return True
-def stem_len(x):
-        for y in x:
+def stem_len(stems):
+        for y in stems:
             if not (len(y) == 14):
                 return True
-def underscore(x):
-        for y in x:
+def underscore(stems):
+        for y in stems:
             if not (y[11] == '_'):
                 return True
-def suffix(x):
-        if not (x == {'.txt'}):  # txt ↔ CR3
+def suffix(suffixes):
+        if not (suffixes == {'.txt'}):  # txt ↔ CR3
             return True
-def correspond(x,z):
-        for y in x:
-            if not (y[0:11] == z.name):
+def correspond(outer,stems):
+        for y in stems:
+            if not (y[0:11] == outer.name):
                  return True
-def numbering(x):
-        numbering = sorted([y[12:14] for y in x])
+def numbering(stems):
+        numbering = sorted([y[12:14] for y in stems])
         base = []
         for y in range(1,len(numbering)+1):
             base.append(f"{y:02d}")     
         if not (numbering == base):
             return True
-def Internal_Checks(x,z):
+def trio_exists(contents):
+             return not (len(contents) == 3)
+def subfolder_trio(stems):
+            return not (sorted(stems) == ['JPG', 'RAW', 'TIFF'])
+def suffixes_correspond(outer):
+            jpg = {x.suffix.lower() for x in listdir(outer / 'JPG')}
+            raw = {x.suffix.lower() for x in listdir(outer / 'RAW')}
+            tiff = {x.suffix.lower() for x in listdir(outer / 'TIFF')}
+            return not (jpg == {'.jpg'} and raw == {'.txt'} and tiff == {'.tiff'})
+def trio_correspond(outer):
+            JPG = [x.stem for x in listdir(outer / 'JPG')]
+            RAW = [x.stem for x in listdir(outer / 'RAW')]
+            TIFF = [x.stem for x in listdir(outer / 'TIFF')]
+            return not (sorted(JPG) == sorted(RAW) == sorted(TIFF))
+# Composite Checks
+def parent(paths, target):
+    invalid_paths = []
+    for path in paths:
+        if path.is_file():
+            invalid_paths.append(path)
+            error(target, 'Content Type')
+    for x in invalid_paths:
+        paths.remove(x)  
+def Internal_Checks(outer,inner):
     # Content Setup
-    contents, stems, suffixes = dir_setup(x)
+    contents, stems, suffixes = dir_setup(inner)
 
     # Subfolder Name Format
-    if subfolder_form(z):
-        error(z, 'Subfolder Name Format')
+    if subfolder_form(outer):
+        error(outer, 'Subfolder Name Format')
 
     # Content Existence Check
     if content_exists(contents):
-        error(z,'Content Availability')
+        error(outer,'Content Availability')
         
     # Contents type check
     if content_type(contents):
-        error(z,'Content Type')   
+        error(outer,'Content Type')   
     
     # File Stem length check
     if stem_len(stems):
-        error(z,'Name Length')            
+        error(outer,'Name Length')            
 
     # Underscore preceeding numbering check
     if underscore(stems):
-        error(z,'Formatting')
+        error(outer,'Formatting')
 
     # Suffix Type check
     if suffix(suffixes):
-        error(z,'Suffix')
+        error(outer,'Suffix')
     
     # Subfolder & Contents Name Correspondence 
-    if correspond(stems,z):
-        error(z,'Correspondence')        
+    if correspond(outer, stems):
+        error(outer,'Correspondence')        
         
     # Order of Numbers
     if numbering(stems):
-        error(z, 'Numbering')    
-                 
-# Initial Setup
-target = Path(input("\nTarget : "))
-paths_0 = listdir(target)
-invalid_paths = []
-toTag = []
-issues = []
-section_choice = 'Editing'
+        error(outer, 'Numbering')    
+def External_Checks(path):
+    # Setup
+    contents, stems, suffixes = dir_setup(path)
 
-# External Type Check
-for path in paths_0:
-    if path.is_file():
-        invalid_paths.append(path)
-        error(target, 'Content Type')
-for x in invalid_paths:
-     paths_0.remove(x)    
-
-# External Subfolder Checks
-if section_choice == 'Editing':
-    for path in paths_0:
-        
-        # Setup
-        contents, stems, suffixes = dir_setup(path)
-
-        # Subfolder Quantity
-        if not (len(contents) == 3):
+    # Subfolder Quantity
+    if trio_exists(contents):
             error(path, 'Content Availability') 
+            return None
+            
+    # Subfolder Content Naming    
+    if subfolder_trio(stems):
+        error(path, 'Subfolder Contents Naming')            
+        return None
+    
+    # Suffix/Subfolder Correspondence        
+    if suffixes_correspond(path):
+        error(path, 'Suffix Correspondence')
+        return None
+    
+    # Subfolder Content Correspondence        
+    if trio_correspond(path):
+        error(path, 'Subfolder Correspondence')    
+# Running
+def run_process(target, section_choice, color):
+   
+    # Setup
+    global toTag, issues
+    toTag = []
+    issues = []
+    paths = listdir(Path(target))
+    
+    # Folder Check
+    parent(paths, target)
 
-        # Subfolder Content Naming
-        if not (sorted(stems) == ['JPG', 'RAW', 'TIFF']):
-            error(path, 'Subfolder Contents Naming')
-            continue
+    # Subfolder Checks
+    if section_choice.strip() == 'Editing Section':  
+        for path in paths: 
+            External_Checks(path)
+            if not (path in toTag):
+                Internal_Checks(path, path / 'RAW')  
 
-        # Suffix/Subfolder Correspondence
-        jpg = {x.suffix.lower() for x in listdir(path / 'JPG')}
-        raw = {x.suffix.lower() for x in listdir(path / 'RAW')}
-        tiff = {x.suffix.lower() for x in listdir(path / 'TIFF')}
-        if not (jpg == {'.jpg'} and raw == {'.txt'} and tiff == {'.tiff'}):
-             error(path, 'Suffix Correspondence')
-             continue
+    elif section_choice.strip() == 'Photography Section':
+        for path in paths:
+            Internal_Checks(path,path)
 
-        # Subfolder Content Correspondence
-        JPG = [x.stem for x in listdir(path / 'JPG')]
-        RAW = [x.stem for x in listdir(path / 'RAW')]
-        TIFF = [x.stem for x in listdir(path / 'TIFF')]
-        if not (sorted(JPG) == sorted(RAW) == sorted(TIFF)):
-            error(path, 'Subfolder Correspondence')
-            continue
-               
-        # Internal Checks Prep
-        raw_folder = path / 'RAW' 
-        # Internal Subfolder Checks
-        Internal_Checks(raw_folder, path)     
-else:
-     for x in paths_0:
-        Internal_Checks(x,x)
-
-# Tagging & Result
-for y in toTag:
-    tag(y)
-issues.sort()
-print(f'\nCheck Complete!\n')
-for x in issues:    
-    print(x)
+    # Tagging & Result
+    for y in toTag:
+        tag(y,color.strip())
+    issues.sort()
+    return issues, set(toTag)

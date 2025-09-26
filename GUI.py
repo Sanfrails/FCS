@@ -1,22 +1,72 @@
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
 import time as t
+import tkinter as tk
+from tkinter import ttk, filedialog
+from FCS import *
 
+dotted_line = '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
+def clean_log():
+        logbox.delete(0,tk.END)
+        logbox.insert(tk.END ,' / Log 0 / -- Tagged 0 -- Errors 0')
+        logbox.insert(tk.END, ' Target Folder: None')
+        logbox.insert(tk.END, dotted_line)
+def clear_func():
+    logbox.delete(0,tk.END)
+    section.set('\tSection')
+    tag_color.set('\tTag Color')
+    global folder_path, counter, tag_dic
+    folder_path = None
+    counter = 0
+    tag_dic = {' Red Tag':'Red', ' Orange Tag':'Orange', ' Green Tag':'Green', ' Purple Tag':'Purple'}
+    logbox.insert(tk.END ,' / Log 0 / -- Tagged 0 -- Errors 0')
+    logbox.insert(tk.END, ' Target Folder: None')
+    logbox.insert(tk.END, dotted_line)
 def c(event):
     event.widget.selection_clear()
-def f():
+def folder_pick():
     global folder_path
     folder_path = filedialog.askdirectory()
-def p():
-    print(section_choice.get())
+def run_scan():
+    if section_choice.get() == '\tSection' or folder_path == None or tag_color.get()=='\tTag Color':
+        logbox.insert(tk.END, ' Error: Please configure scan settings!')
+        logbox.insert(tk.END, dotted_line)
+    else:
+        # Button State
+        scan.configure(state='disabled', text='Scanning...')
+        scan.update()
+        try:
+            # Running Logic 
+            issues, toTag = run_process(folder_path, section_choice.get(), tag_dic[tag_color.get()])
+            # Logbox insertions
+            global counter
+            counter += 1
+            logbox.insert(tk.END ,f' / Log {counter} / -- Tagged [{len(toTag)}] -- Errors [{len(issues)}]')
+            logbox.insert(tk.END, f' Target Folder: {folder_path}\n')      
+            for x in issues:
+                logbox.insert(tk.END, '')
+                logbox.insert(tk.END, ' ' + x)
+            logbox.insert(tk.END, dotted_line)   
+        except Exception as e:
+            logbox.insert(tk.END, f' Error: Process failed - {e}')
+            logbox.insert(tk.END, f' Please check target and section')
+            logbox.insert(tk.END, dotted_line)
+        finally:
+            # Button State
+            t.sleep(1)
+            scan.configure(state='normal', text='Scan')
 
 # Setup
 root = tk.Tk()
 root.focus_force()
 root.title("Formatting Control System")
-root.geometry("550x450+600-1100") 
+root.geometry("600x450+300-300") 
 style = ttk.Style()
 style.theme_use('default')
+Menu_bar = tk.Menu(root)
+file_menu = tk.Menu(Menu_bar, tearoff=0)
+file_menu.add_command(label='Exit', command=root.destroy)
+Menu_bar.add_cascade(label='File', menu=file_menu)
+root.config(menu=Menu_bar)
+root.bind("<Command-w>", lambda e: root.destroy())
 
 # Side Panel
 side_panel = tk.Frame(root, bg="#1E1E1E", width=250, height=350)
@@ -28,24 +78,46 @@ label_frame = tk.Frame(side_panel, bg='#141414', width=250, height=50)
 label_frame.pack()
 label_frame.pack_propagate(False)
 panel_label = tk.Label(label_frame, text='Options Panel', bg="#141414", font=("Futura", 15, "italic"))
-panel_label.pack(side='top', pady=(13,0)) 
+panel_label.pack(side='top', pady=(10,0)) 
 
 # Section Choice
 section_choice = tk.StringVar()
 style.map('Custom.TCombobox', fieldbackground = [('readonly', '#3d3c3b')], foreground=[('readonly', 'white')], background=[('readonly', '#3d3c3b')], arrowcolor = [('readonly', 'white')])
-section = ttk.Combobox(side_panel, width=20, height=10, values=["Photography Section", "Editing Section"], state='readonly', style='Custom.TCombobox', textvariable=section_choice)
+section = ttk.Combobox(side_panel, width=20, height=10, values=[" Photography Section", " Editing Section"], state='readonly', style='Custom.TCombobox', textvariable=section_choice)
 section.set('\tSection')
 section.bind('<<ComboboxSelected>>', c)
-section.pack(side='top', pady=(50,0))
+section.pack(side='top', pady=(40,0))
 
 # Target Choice
 style.configure('Custom.TButton', foreground='white', padding=(55,0))
 style.map('Custom.TButton', background = [('active', "#474746"), ("!pressed", "#3d3c3b"), ("pressed", "#474746")])
-target = ttk.Button(side_panel, text='Target', style='Custom.TButton', command=f, takefocus=0)
-target.pack(side='top', pady=(50,0))
+target = ttk.Button(side_panel, text='Target', style='Custom.TButton', takefocus=0, command=folder_pick)
+target.pack(side='top', pady=(40,0))
 
-# path = tk.Button(side_panel, text='Print Path', command=p)
-# path.pack(side='top', pady=(70,0))
+# Tag Color Choice
+tag_choice = tk.StringVar()
+tag_color = ttk.Combobox(side_panel, width=20, height=10, values=[" Red Tag", " Orange Tag", ' Green Tag', ' Purple Tag'], state='readonly', style='Custom.TCombobox', textvariable=tag_choice)
+tag_color.set('\tTag Color')
+tag_color.bind('<<ComboboxSelected>>', c)
+tag_color.pack(side='top', pady=(40,0))
+
+# Reset Button
+style.configure('Clear.TButton', foreground='white', padding=(2,0))
+style.map('Clear.TButton', background = [('active', "#474746"), ("!pressed", "#3d3c3b"), ("pressed", "#474746")])
+clear = ttk.Button(side_panel, text='↺', takefocus=0, style='Clear.TButton', width=2, command=clear_func)
+clear.pack(side='bottom',anchor='e', pady=(0,10), padx=(0,5))
+
+# Start Scan
+style.configure('Custom.TButton', foreground='white', padding=(55,0))
+style.map('Custom.TButton', background = [('active', "#474746"), ("!pressed", "#3d3c3b"), ("pressed", "#474746")])
+scan = ttk.Button(side_panel, text='Scan', style='Custom.TButton', takefocus=0, command=run_scan)
+scan.pack(side='top', pady=(80,0))
+
+# Clean Log
+style.configure('Clean.TButton', foreground='white', padding=(2,0))
+style.map('Clean.TButton', background = [('active', "#474746"), ("!pressed", "#3d3c3b"), ("pressed", "#474746")])
+clean = ttk.Button(side_panel, text='⌫', style='Clean.TButton', takefocus=0, width=2, command=clean_log)
+clean.pack(side='bottom',anchor='e', pady=(0,10), padx=(0,5))
 
 # Log Panel
 log_panel = tk.Frame(root, bg='#141414', width=290, height=440)
@@ -56,6 +128,6 @@ log_panel.pack_propagate(False)
 logbox = tk.Listbox(log_panel, activestyle='none')
 logbox.configure(selectbackground='#141414')
 logbox.pack(side='left', expand=True, fill='both')
-logbox.insert(0 ,' / Log / -- Test no. 0 -- Errors 0')
 
+clear_func()
 root.mainloop()
