@@ -6,23 +6,23 @@ from FCS import *
 dotted_line = '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
 def clean_log():
         logbox.delete(0,tk.END)
-        logbox.insert(tk.END ,' / Log 0 / -- Tagged 0 -- Errors 0')
-        logbox.insert(tk.END, ' Target Folder: None')
+        logbox.insert(tk.END ,f' / Log {counter} / -- Tagged [{len(toTag)}] -- Errors [{len(issues)}]')
+        logbox.insert(tk.END, f' Target Folder: {folder_path}\n')
         logbox.insert(tk.END, dotted_line)
 def clear_func():
     logbox.delete(0,tk.END)
     section.set('\tSection')
     tag_color.set('\tTag Color')
-    global folder_path, counter, tag_dic
+    global folder_path, counter, tag_dic, toTag, issues
     folder_path = None
     counter = 0
+    toTag = []
+    issues = []
     tag_dic = {' Red Tag':'Red', ' Orange Tag':'Orange', ' Green Tag':'Green', ' Purple Tag':'Purple'}
-    logbox.insert(tk.END ,' / Log 0 / -- Tagged 0 -- Errors 0')
+    logbox.insert(tk.END ,' / Log 0 / -- Tagged [0] -- Errors [0]')
     logbox.insert(tk.END, ' Target Folder: None')
     logbox.insert(tk.END, dotted_line)
-def c(event):
-    event.widget.selection_clear()
-def folder_pick():
+def folder_pick(event=None):
     global folder_path
     folder_path = filedialog.askdirectory()
 def run_scan():
@@ -34,7 +34,8 @@ def run_scan():
         scan.configure(state='disabled', text='Scanning...')
         scan.update()
         try:
-            # Running Logic 
+            # Running Logic
+            global issues, toTag 
             issues, toTag = run_process(folder_path, section_choice.get(), tag_dic[tag_color.get()])
             # Logbox insertions
             global counter
@@ -53,19 +54,21 @@ def run_scan():
             # Button State
             t.sleep(1)
             scan.configure(state='normal', text='Scan')
+def c(event):
+    event.widget.selection_clear()
 
 # Setup
 root = tk.Tk()
 root.focus_force()
 root.title("Formatting Control System")
-root.geometry("600x450+300-300") 
+root.geometry("600x450+700-1100") 
 style = ttk.Style()
 style.theme_use('default')
 Menu_bar = tk.Menu(root)
 file_menu = tk.Menu(Menu_bar, tearoff=0)
 file_menu.add_command(label='Exit', command=root.destroy)
 Menu_bar.add_cascade(label='File', menu=file_menu)
-root.config(menu=Menu_bar)
+root.config(menu=Menu_bar, bg='#3E3D3D')
 root.bind("<Command-w>", lambda e: root.destroy())
 
 # Side Panel
@@ -77,7 +80,7 @@ side_panel.pack_propagate(False)
 label_frame = tk.Frame(side_panel, bg='#141414', width=250, height=50)
 label_frame.pack()
 label_frame.pack_propagate(False)
-panel_label = tk.Label(label_frame, text='Options Panel', bg="#141414", font=("Futura", 15, "italic"))
+panel_label = tk.Label(label_frame, text='Options Panel', bg="#141414", font=("Times New Roman", 15))
 panel_label.pack(side='top', pady=(10,0)) 
 
 # Section Choice
@@ -89,15 +92,20 @@ section.bind('<<ComboboxSelected>>', c)
 section.pack(side='top', pady=(40,0))
 
 # Target Choice
-style.configure('Custom.TButton', foreground='white', padding=(55,0))
+style.configure('Custom.TButton', foreground='white', padding=(55,0), borderwidth=2)
 style.map('Custom.TButton', background = [('active', "#474746"), ("!pressed", "#3d3c3b"), ("pressed", "#474746")])
 target = ttk.Button(side_panel, text='Target', style='Custom.TButton', takefocus=0, command=folder_pick)
 target.pack(side='top', pady=(40,0))
+# style.map('Target.TCombobox', fieldbackground = [('readonly', '#3d3c3b')], foreground=[('readonly', 'white')], background=[('readonly', '#3d3c3b')], arrowcolor = [('readonly', 'white')])
+# target = ttk.Combobox(side_panel, width=20, height=10, values=[" Desktop"], state='readonly', style='Target.TCombobox')
+# target.set('\tTarget')
+# target.bind('<<ComboboxSelected>>', folder_pick)
+# target.pack(side='top', pady=(40,0))
 
 # Tag Color Choice
 tag_choice = tk.StringVar()
 tag_color = ttk.Combobox(side_panel, width=20, height=10, values=[" Red Tag", " Orange Tag", ' Green Tag', ' Purple Tag'], state='readonly', style='Custom.TCombobox', textvariable=tag_choice)
-tag_color.set('\tTag Color')
+tag_color.set('Tag Color')
 tag_color.bind('<<ComboboxSelected>>', c)
 tag_color.pack(side='top', pady=(40,0))
 
@@ -113,6 +121,12 @@ style.map('Custom.TButton', background = [('active', "#474746"), ("!pressed", "#
 scan = ttk.Button(side_panel, text='Scan', style='Custom.TButton', takefocus=0, command=run_scan)
 scan.pack(side='top', pady=(80,0))
 
+# Deco Lines
+deco_line1 = tk.Frame(side_panel, width=225, height=4, bg="#2A2A2A")
+deco_line1.pack(side='top', pady=(20,0), padx=(4,0))
+deco_line2 = tk.Frame(side_panel, width=225, height=4, bg="#2A2A2A")
+deco_line2.pack(side='top', pady=(5,0), padx=(4,0))
+
 # Clean Log
 style.configure('Clean.TButton', foreground='white', padding=(2,0))
 style.map('Clean.TButton', background = [('active', "#474746"), ("!pressed", "#3d3c3b"), ("pressed", "#474746")])
@@ -120,7 +134,7 @@ clean = ttk.Button(side_panel, text='⌫', style='Clean.TButton', takefocus=0, w
 clean.pack(side='bottom',anchor='e', pady=(0,10), padx=(0,5))
 
 # Log Panel
-log_panel = tk.Frame(root, bg='#141414', width=290, height=440)
+log_panel = tk.Frame(root, width=290, height=440)
 log_panel.pack(side='right', expand=True, fill='both', pady=(5,0), padx=(5,0))
 log_panel.pack_propagate(False)
 

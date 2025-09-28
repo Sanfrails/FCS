@@ -1,5 +1,5 @@
 from pathlib import *
-import subprocess
+import macos_tags 
 
 # Setup Facility
 def listdir(x):
@@ -16,7 +16,7 @@ def dir_setup(outer):
     return subfolder_contents, file_stems, file_suffixes
 # Error Marking
 def tag(outer, color):
-    subprocess.run(['tag', '-a', color, str(outer)])
+    macos_tags.add(color, file=str(outer))
 def error(outer,error_type):
     toTag.append(outer)
     issues.append(f"{outer.name.strip()} triggered {error_type} Error")
