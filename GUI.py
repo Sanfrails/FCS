@@ -56,12 +56,18 @@ def run_scan():
             scan.configure(state='normal', text='Scan')
 def c(event):
     event.widget.selection_clear()
+def center_window(window, width, height):
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = (screen_width // 2) - (width // 2)
+    y = (screen_height // 2) - (height // 2)
+    window.geometry(f'{width}x{height}+{x}+{y}')
 
 # Setup
 root = tk.Tk()
 root.focus_force()
 root.title("Formatting Control System")
-root.geometry("600x450+700-1100") 
+center_window(root, 600,450) 
 style = ttk.Style()
 style.theme_use('default')
 Menu_bar = tk.Menu(root)
@@ -92,15 +98,10 @@ section.bind('<<ComboboxSelected>>', c)
 section.pack(side='top', pady=(40,0))
 
 # Target Choice
-style.configure('Custom.TButton', foreground='white', padding=(55,0), borderwidth=2)
-style.map('Custom.TButton', background = [('active', "#474746"), ("!pressed", "#3d3c3b"), ("pressed", "#474746")])
-target = ttk.Button(side_panel, text='Target', style='Custom.TButton', takefocus=0, command=folder_pick)
+style.configure('Target.TButton', foreground='white', padding=(55,0))
+style.map('Target.TButton', background = [('active', "#474746"), ("!pressed", "#3d3c3b"), ("pressed", "#474746")])
+target = ttk.Button(side_panel, text='Target', style='Target.TButton', takefocus=0, command=folder_pick)
 target.pack(side='top', pady=(40,0))
-# style.map('Target.TCombobox', fieldbackground = [('readonly', '#3d3c3b')], foreground=[('readonly', 'white')], background=[('readonly', '#3d3c3b')], arrowcolor = [('readonly', 'white')])
-# target = ttk.Combobox(side_panel, width=20, height=10, values=[" Desktop"], state='readonly', style='Target.TCombobox')
-# target.set('\tTarget')
-# target.bind('<<ComboboxSelected>>', folder_pick)
-# target.pack(side='top', pady=(40,0))
 
 # Tag Color Choice
 tag_choice = tk.StringVar()
@@ -116,16 +117,16 @@ clear = ttk.Button(side_panel, text='↺', takefocus=0, style='Clear.TButton', w
 clear.pack(side='bottom',anchor='e', pady=(0,10), padx=(0,5))
 
 # Start Scan
-style.configure('Custom.TButton', foreground='white', padding=(55,0))
-style.map('Custom.TButton', background = [('active', "#474746"), ("!pressed", "#3d3c3b"), ("pressed", "#474746")])
-scan = ttk.Button(side_panel, text='Scan', style='Custom.TButton', takefocus=0, command=run_scan)
+style.configure('Scan.TButton', foreground='white', padding=(55,0))
+style.map('Scan.TButton', background = [('active', "#474746"), ("!pressed", "#3d3c3b"), ("pressed", "#474746")])
+scan = ttk.Button(side_panel, text='Scan', style='Scan.TButton', takefocus=0, command=run_scan)
 scan.pack(side='top', pady=(80,0))
 
 # Deco Lines
 deco_line1 = tk.Frame(side_panel, width=225, height=4, bg="#2A2A2A")
-deco_line1.pack(side='top', pady=(20,0), padx=(4,0))
-deco_line2 = tk.Frame(side_panel, width=225, height=4, bg="#2A2A2A")
-deco_line2.pack(side='top', pady=(5,0), padx=(4,0))
+deco_line1.pack(side='top', pady=(15,0), padx=(4,0))
+deco_line2 = tk.Frame(side_panel, width=215, height=3, bg="#2A2A2A")
+deco_line2.pack(side='top', pady=(4,0), padx=(4,0))
 
 # Clean Log
 style.configure('Clean.TButton', foreground='white', padding=(2,0))
