@@ -3,5 +3,4 @@ Swings.py
 .DS_Store
 __pycache__
 Venv/
-works.icns
-Dist/
+dist/
