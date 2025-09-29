@@ -10,7 +10,7 @@ def listdir(x):
 def dir_setup(outer):
     subfolder_contents = listdir(outer)
     subfolder_contents.discard(outer / 'CaptureOne')
-    subfolder_contents.discard(outer / f'{outer.name}_Marking.txt') # txt ↔ CR3
+    subfolder_contents.discard(outer / f'{outer.name}_Marking.CR3')
     file_stems = [y.stem for y in subfolder_contents]
     file_suffixes = {y.suffix for y in subfolder_contents}
     return subfolder_contents, file_stems, file_suffixes
@@ -47,7 +47,7 @@ def underscore(stems):
             if not (y[11] == '_'):
                 return True
 def suffix(suffixes):
-        if not (suffixes == {'.txt'}):  # txt ↔ CR3
+        if not (suffixes == {'.CR3'}):
             return True
 def correspond(outer,stems):
         for y in stems:
@@ -65,10 +65,10 @@ def trio_exists(contents):
 def subfolder_trio(stems):
             return not (sorted(stems) == ['JPG', 'RAW', 'TIFF'])
 def suffixes_correspond(outer):
-            jpg = {x.suffix.lower() for x in listdir(outer / 'JPG')}
-            raw = {x.suffix.lower() for x in listdir(outer / 'RAW')}
-            tiff = {x.suffix.lower() for x in listdir(outer / 'TIFF')}
-            return not (jpg == {'.jpg'} and raw == {'.txt'} and tiff == {'.tiff'})
+            jpg = {x.suffix for x in listdir(outer / 'JPG')}
+            raw = {x.suffix for x in listdir(outer / 'RAW')}
+            tiff = {x.suffix for x in listdir(outer / 'TIFF')}
+            return not (jpg == {'.jpg'} and raw == {'.CR3'} and tiff == {'.tif'})
 def trio_correspond(outer):
             JPG = [x.stem for x in listdir(outer / 'JPG')]
             RAW = [x.stem for x in listdir(outer / 'RAW')]

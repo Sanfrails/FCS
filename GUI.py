@@ -86,7 +86,7 @@ side_panel.pack_propagate(False)
 label_frame = tk.Frame(side_panel, bg='#141414', width=250, height=50)
 label_frame.pack()
 label_frame.pack_propagate(False)
-panel_label = tk.Label(label_frame, text='Options Panel', bg="#141414", font=("Times New Roman", 15))
+panel_label = tk.Label(label_frame, text='Options Panel', bg="#141414", fg='#ffffff', font=("Times New Roman", 15))
 panel_label.pack(side='top', pady=(10,0)) 
 
 # Section Choice
@@ -140,8 +140,7 @@ log_panel.pack(side='right', expand=True, fill='both', pady=(5,0), padx=(5,0))
 log_panel.pack_propagate(False)
 
 # List Box Log
-logbox = tk.Listbox(log_panel, activestyle='none')
-logbox.configure(selectbackground='#141414')
+logbox = tk.Listbox(log_panel, activestyle='none', bg="#2C2C2C", fg="#ffffff", selectbackground="#1D1D1D",selectforeground='#ffffff')
 logbox.pack(side='left', expand=True, fill='both')
 
 clear_func()
