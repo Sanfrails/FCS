@@ -4,13 +4,12 @@ import macos_tags
 # Setup Facility
 def listdir(x):
     a = set(x.iterdir())
-    d = x / '.DS_Store'
-    a.discard(d)
+    a.discard(x / '.DS_Store')
     return a
-def dir_setup(outer):
-    subfolder_contents = listdir(outer)
-    subfolder_contents.discard(outer / 'CaptureOne')
-    subfolder_contents.discard(outer / f'{outer.name}_Marking.CR3')
+def dir_setup(outer, inner):
+    subfolder_contents = listdir(inner)
+    subfolder_contents.discard(inner / 'CaptureOne')
+    subfolder_contents.discard(inner / f'{outer.name}_Marking.CR3')
     file_stems = [y.stem for y in subfolder_contents]
     file_suffixes = {y.suffix for y in subfolder_contents}
     return subfolder_contents, file_stems, file_suffixes
@@ -70,9 +69,10 @@ def suffixes_correspond(outer):
             tiff = {x.suffix for x in listdir(outer / 'TIFF')}
             return not (jpg == {'.jpg'} and raw == {'.CR3'} and tiff == {'.tif'})
 def trio_correspond(outer):
-            JPG = [x.stem for x in listdir(outer / 'JPG')]
-            RAW = [x.stem for x in listdir(outer / 'RAW')]
-            TIFF = [x.stem for x in listdir(outer / 'TIFF')]
+            JPG = {x.stem for x in listdir(outer / 'JPG')}
+            RAW = {x.stem for x in listdir(outer / 'RAW')}
+            TIFF = {x.stem for x in listdir(outer / 'TIFF')}
+            RAW.discard(f'{outer.name}_Marking')
             return not (sorted(JPG) == sorted(RAW) == sorted(TIFF))
 # Composite Checks
 def parent(paths, target):
@@ -85,42 +85,49 @@ def parent(paths, target):
         paths.remove(x)  
 def Internal_Checks(outer,inner):
     # Content Setup
-    contents, stems, suffixes = dir_setup(inner)
+    contents, stems, suffixes = dir_setup(outer, inner)
 
     # Subfolder Name Format
     if subfolder_form(outer):
         error(outer, 'Subfolder Name Format')
-
+        return None
+    
     # Content Existence Check
     if content_exists(contents):
         error(outer,'Content Availability')
-        
+        return None
+    
     # Contents type check
     if content_type(contents):
         error(outer,'Content Type')   
+        return None
     
     # File Stem length check
     if stem_len(stems):
         error(outer,'Name Length')            
-
+        return None
+    
     # Underscore preceeding numbering check
     if underscore(stems):
         error(outer,'Formatting')
-
+        return None
+    
     # Suffix Type check
     if suffix(suffixes):
         error(outer,'Suffix')
-    
+        return None
+     
     # Subfolder & Contents Name Correspondence 
     if correspond(outer, stems):
         error(outer,'Correspondence')        
-        
+        return None
+       
     # Order of Numbers
     if numbering(stems):
         error(outer, 'Numbering')    
 def External_Checks(path):
     # Setup
-    contents, stems, suffixes = dir_setup(path)
+    contents, stems, suffixes = dir_setup(path, path)
 
     # Subfolder Quantity
     if trio_exists(contents):
